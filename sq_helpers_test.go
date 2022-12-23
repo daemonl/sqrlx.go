@@ -25,6 +25,16 @@ func compareSQL(t testing.TB, stmt Sqlizer, wantText string, wantArgs ...interfa
 
 }
 
+func TestCaseSumSimple(t *testing.T) {
+	cs := CaseSum("amount", "amount > 0")
+	compareSQL(t, cs, "COALESCE(SUM(CASE WHEN amount > 0 THEN COALESCE(amount,0) ELSE 0 END), 0)")
+}
+
+func TestCaseSumAliased(t *testing.T) {
+	cs := CaseSum("amount", "amount > 0").Alias("positive_amount")
+	compareSQL(t, cs, "COALESCE(SUM(CASE WHEN amount > 0 THEN COALESCE(amount,0) ELSE 0 END), 0) AS positive_amount")
+}
+
 func TestUpsertSimple(t *testing.T) {
 
 	b := Upsert("table").Key("id", 1234).Set("data", "ASDF")

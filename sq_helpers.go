@@ -11,13 +11,25 @@ type CaseSumBuilder struct {
 	Target    string
 	Condition string
 	Args      []interface{}
+	As        string
 }
 
 func (cs CaseSumBuilder) ToSql() (string, []interface{}, error) {
-	return fmt.Sprintf(`COALESCE(SUM(CASE WHEN %s THEN COALESCE(%s,0) ELSE 0 END), 0)`,
+	statement := fmt.Sprintf(`COALESCE(SUM(CASE WHEN %s THEN COALESCE(%s,0) ELSE 0 END), 0)`,
 		cs.Condition,
 		cs.Target,
-	), cs.Args, nil
+	)
+
+	if cs.As != "" {
+		statement = fmt.Sprintf("%s AS %s", statement, cs.As)
+	}
+
+	return statement, cs.Args, nil
+}
+
+func (cs *CaseSumBuilder) Alias(as string) *CaseSumBuilder {
+	cs.As = as
+	return cs
 }
 
 func CaseSum(target, condition string, args ...interface{}) *CaseSumBuilder {
